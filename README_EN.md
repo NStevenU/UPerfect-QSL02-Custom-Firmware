@@ -7,7 +7,7 @@
 >
 > 1. **Target Hardware Compatibility**:
 >    * This firmware is exclusively intended for the **UPERFECT QSL02** (16-inch 2560×1600) portable monitor.
->    * You must physically disassemble the device and verify that the mainboard scaler chipset is **Realtek RTD2775QT** and the LCD panel is **CSOT MNG007DA1-Q** before flashing.
+>    * You must physically disassemble the device and verify that the mainboard scaler chipset is **Realtek RTD2775QT** and the LCD panel is **CSOT MNG007DA1-Q** before flashing. (While physically marked as RTD2775QT, the runtime register architecture and operation match the full-spec RTD2795T series supporting 4-lane eDP and frame buffer rotation.)
 >    * Flashing this firmware onto devices with different revisions, different scaler chipsets, or different display panels may result in a blank display, timing distortion, or permanent hardware damage.
 > 2. **Flashing Tool Requirement**:
 >    * Flashing the firmware requires **Realtek MonitorCustomerTool V1.6** (or a compatible Realtek ISP / programmer tool).
@@ -26,12 +26,15 @@ This table describes one disassembled test device and the corresponding panel da
 | Parameter | Manufacturer Claim / Stock ROM Data | Actual Hardware (Inspection & CSOT Datasheet) | Notes & Corrections |
 | :--- | :--- | :--- | :--- |
 | **Panel Manufacturer / Model** | BOE (Stock ROM remnant: `NE160QDM`) | **CSOT `MNG007DA1-Q`** | Confirmed by physical panel label upon disassembly |
-| **Panel Technology** | Advertised as "QLED" (Quantum Dot) | **a-Si TFT-LCD (W-LED, Hardware Low Blue Light)** | Not QLED; standard W-LED IPS panel with hardware low blue light filtering |
+| **Panel Technology** | Advertised as "QLED" (Quantum Dot) | **LTPS TFT-LCD (FFS mode, Hardware Low Blue Light)** | Neither QLED nor a-Si; Low-Temperature Poly-Silicon (LTPS) process with hardware low blue light filtering |
 | **Peak Luminance** | 500 cd/m² | **Typ. 350 cd/m²** (Min 297.5 / Max 402.5 cd/m²) | Datasheet specifies ~350 nits typical (not 500 nits) |
-| **Color Gamut** | sRGB 139.4% (Wide gamut claim) | **sRGB 100% (Typ) / 96% (Min)** (CIE1976) | Standard sRGB 100% panel, not a wide-gamut (DCI-P3) display |
+| **Color Gamut** | sRGB 139.4% (Wide gamut claim) | **sRGB 100% (Typ) / 96% (Min)** (CIE1976) | Standard sRGB 100% panel, not a wide-gamut (DCI-P3) display (not 139.4%) |
 | **Contrast Ratio** | 1200:1 | **Typ. 1200:1** (Min 1000:1) | Matches claim |
-| **Screen Size / Aspect Ratio** | 16-inch, 16:10 (2560×1600) | **16.0-inch, 16:10 (2560×1600)** | Matches claim |
-| **Max Refresh Rate** | HDMI 120Hz, Type-C 144Hz | **HDMI 120Hz (Up to 130Hz), Type-C 144Hz** | Matches claim (HDMI EDID includes 130Hz DTD) |
+| **Screen Size / Aspect Ratio** | 16-inch, 16:10 (2560×1600) | **16.0-inch, 16:10 (2560×1600)** | Matches claim (Active Area: 344.68 × 215.42 mm) |
+| **Max Refresh Rate** | HDMI 120Hz, Type-C 144Hz | **Panel Native 60~165Hz** (Driven by monitor board: Type-C 144Hz, HDMI 120Hz / up to 130Hz) | Panel hardware natively supports 165Hz; driven at 144Hz/120Hz(130Hz) due to scaler link bandwidth limits |
+| **Surface Treatment** | (Unspecified) | **Anti-Glare (3H Polarizer)** | Matte anti-reflective finish |
+| **Response Time** | (Unspecified) | **GTG 3ms (OD On) / 5ms (OD Off)** | Datasheet specification (Tr+Tf 9ms) |
+| **Power Consumption** | (Unspecified) | **Panel Logic 1.9W + Backlight 3.2W (Total 5.1W Max)** | Low-power design typical of LTPS process |
 | **Color Depth** | 1.07B (10-bit) | **1.07B (8-bit + Hi-FRC)** | Native 8-bit panel with dithering (FRC) to achieve 10-bit |
 | **Connectivity** | Mini HDMI, USB-C × 2, 3.5mm Audio | **Mini HDMI, USB-C × 2, 3.5mm Audio** | Matches claim |
 | **Built-in Speakers** | 8Ω 1W × 2 | **8Ω 1W × 2** | Matches claim |
