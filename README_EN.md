@@ -31,7 +31,7 @@ This table describes one disassembled test device and the corresponding panel da
 | **Color Gamut** | sRGB 139.4% (Wide gamut claim) | **sRGB 100% (Typ) / 96% (Min)** (CIE1976) | Standard sRGB 100% panel, not a wide-gamut (DCI-P3) display (not 139.4%) |
 | **Contrast Ratio** | 1200:1 | **Typ. 1200:1** (Min 1000:1) | Matches claim |
 | **Screen Size / Aspect Ratio** | 16-inch, 16:10 (2560×1600) | **16.0-inch, 16:10 (2560×1600)** | Matches claim (Active Area: 344.68 × 215.42 mm) |
-| **Max Refresh Rate** | HDMI 120Hz, Type-C 144Hz | **Panel Native 60~165Hz** (Driven by monitor board: Type-C 144Hz, HDMI 120Hz / up to 130Hz) | Panel hardware natively supports 165Hz; driven at 144Hz/120Hz(130Hz) due to scaler link bandwidth limits |
+| **Max Refresh Rate** | HDMI 120Hz, Type-C 144Hz | **Panel Native 60~165Hz** (Driven by monitor board: Type-C 144Hz, HDMI 130Hz) | Panel hardware natively supports 165Hz; driven at 144Hz/130Hz due to scaler link bandwidth limits |
 | **Surface Treatment** | (Unspecified) | **Anti-Glare (3H Polarizer)** | Matte anti-reflective finish |
 | **Response Time** | (Unspecified) | **GTG 3ms (OD On) / 5ms (OD Off)** | Datasheet specification (Tr+Tf 9ms) |
 | **Power Consumption** | (Unspecified) | **Panel Logic 1.9W + Backlight 3.2W (Total 5.1W Max)** | Low-power design typical of LTPS process |
@@ -43,8 +43,8 @@ This table describes one disassembled test device and the corresponding panel da
 
 | Filename | Size | SHA256 (First 16 chars) | Intended Use |
 | :--- | :---: | :---: | :--- |
-| `UPerfect_QSL02_0deg.bin` | 1,048,576 B | `23c3e091295bbcd9` | Standard 0-degree orientation build |
-| `UPerfect_QSL02_180deg.bin` | 1,048,576 B | `ac8f281d26935259` | 180-degree hardware display rotation build |
+| `UPerfect_QSL02_0deg.bin` | 1,048,576 B | `b84c9782e073e858` | Standard 0-degree orientation build |
+| `UPerfect_QSL02_180deg.bin` | 1,048,576 B | `7507d72395dfcf25` | 180-degree hardware display rotation build |
 
 Both files were generated following thorough byte-level diffing against the stock dump and `UPerfect_QSL02_DelNVRAM.bin`, with complete EDID and checksum validation. Always verify file checksums and prepare recovery procedures before flashing.
 
@@ -58,7 +58,7 @@ The default Burn-in flag in Bank 2 was modified from `0x022BD2: 0x01 -> 0x00`. T
 
 In images with `0xFB000~0xFCFFF` cleared, factory burn-in mode looping, spontaneous settings resets, and boot stalls did not reproduce, and custom settings persist across power cycles. These are confirmed results on physical test hardware with cleared NVRAM; it does not conclusively prove that power-on hour logging (Item `0x0F`) will never regenerate over prolonged usage.
 
-### Complete EDID Reconstruction (Datasheet-Accurate Optical Profile)
+### Complete EDID Reconstruction (Datasheet-Accurate Optical Profile & VESA Compatibility)
 
 The stock EDID contained different physical dimensions and chromaticity values from those used in this reconstruction. The effect of those values can vary by operating system and color-management path.
 
@@ -67,11 +67,16 @@ In this custom firmware, the EDID blocks were reconstructed using values from th
 - **Chromaticity Coordinates**: Injected the datasheet coordinates for primaries (Red: x=0.647, y=0.328; Green: x=0.301, y=0.603; Blue: x=0.142, y=0.054) and White Point (x=0.313, y=0.329, D65). These values may help the operating system select a profile closer to the panel characteristics, but do not guarantee measured color accuracy or sRGB coverage.
 - **Physical Dimensions**: Corrected to `34cm × 22cm`, accurately representing the 16.0" 16:10 format (eliminating 16:9 distortion).
 - **Naming Clean-up**: Clearly labeled as `UPERFECT USBC` for Type-C ports and `UPERFECT HDMI` for HDMI.
-- **Refresh Rates & FreeSync**: Configured 60~144Hz for Type-C and 60~120Hz for HDMI with valid CEA extension descriptors.
+- **Refresh Rates & FreeSync**: Configured 60~144Hz for Type-C and 60~130Hz for HDMI with valid CEA extension descriptors.
+- **VESA Established & Standard Timings Restoration**:
+  - Restored standard VESA baseline resolutions that were omitted from the raw eDP laptop datasheet profile to match the factory stock ROM behavior.
+  - **Established Timings**: Enabled `640×480 @ 60Hz` (IBM VGA / legacy boot), `800×600 @ 60Hz`, and `1024×768 @ 60Hz` (standard UEFI BIOS setup GUI).
+  - **Standard Timings**: Registered `1920×1080 @ 60Hz` (modern motherboard Full HD UEFI GUI), `1920×1200 @ 60Hz` (16:10 WUXGA), `1680×1050 @ 60Hz`, `1280×720 @ 60Hz` (HD 720p), etc.
+  - Resolves the "No Signal" black screen issue encountered during PC POST and BIOS setup screens over HDMI, while maintaining full compatibility with legacy devices and gaming consoles.
 
 Note that having VRR descriptors in an EDID does not guarantee VRR activation across all GPUs or input interfaces. While Type-C DP Alt Mode demonstrated working VRR under both Windows and macOS, VRR / G-SYNC did not activate on the tested NVIDIA HDMI setup. The exact limitation was not isolated to EDID alone.
 
-The HDMI EDID also includes a fixed DTD at approximately 129.997Hz, which may appear as 130Hz in Windows. This is a separate fixed mode operating within the HDMI 2.0 link bandwidth limit, not a VRR range indicator.
+The HDMI EDID also includes a fixed DTD at approximately 129.997Hz, which may appear as 130Hz in Windows. The FreeSync upper limit is also aligned to 130Hz, providing complete VRR coverage across both 120Hz and 130Hz modes.
 
 ## Differences: 0-Degree vs. 180-Degree
 
